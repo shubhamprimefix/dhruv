@@ -150,7 +150,12 @@ def get_readable_message():
             else:
                 msg += f"\n<b>Size: </b>{download.size()}"
             msg += f"\n<b>Engine: </b>{download.eng()}"
-            msg += f"\n<code>/{BotCommands.CancelMirror} {download.gid()}</code>"
+            if download.message.from_user.username:
+                uname = f'<a href="tg://user?id={download.message.from_user.id}">{download.message.from_user.username}</a>'
+            else:
+                uname = f'<a href="tg://user?id={download.message.from_user.id}">{download.message.from_user.first_name}</a>'
+            msg += f'\n<b>User: </b><code>{uname}</code> | <b>Id: </b><code>{download.message.from_user.id}</code>' 
+            msg += f"\n<b>To Stop: </b> <code>/{BotCommands.CancelMirror} {download.gid()}</code>"
             msg += "\n\n"
             if index == STATUS_LIMIT:
                 break
