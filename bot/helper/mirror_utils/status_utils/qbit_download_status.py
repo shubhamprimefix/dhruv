@@ -1,7 +1,7 @@
 from time import sleep
 
 from bot import LOGGER, get_client
-from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size, get_readable_time
+from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size, get_readable_time, EngineStatus
 
 def get_download(client, hash_):
     try:
@@ -113,3 +113,6 @@ class QbDownloadStatus:
             sleep(0.3)
             self.__listener.onDownloadError('Download stopped by user!')
             self.__client.torrents_delete(torrent_hashes=self.__hash, delete_files=True)
+
+    def eng(self):
+        return EngineStatus.STATUS_QB
