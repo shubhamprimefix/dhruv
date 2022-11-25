@@ -20,35 +20,22 @@ from .modules import authorize, list, cancel_mirror, mirror_status, mirror_leech
 
 
 def stats(update, context):
-    if ospath.exists('.git'):
-        last_commit = check_output(["git log -1 --date=short --pretty=format:'%cd <b>From</b> %cr'"], shell=True).decode()
-    else:
-        last_commit = 'No UPSTREAM_REPO'
     total, used, free, disk = disk_usage('/')
-    swap = swap_memory()
     memory = virtual_memory()
-    stats = f'<b>Commit Date:</b> {last_commit}\n\n'\
-            f'<b>Bot Uptime:</b> {get_readable_time(time() - botStartTime)}\n'\
-            f'<b>OS Uptime:</b> {get_readable_time(time() - boot_time())}\n\n'\
+    stats = f'<b>Bot Uptime:</b> {get_readable_time(time() - botStartTime)}\n\n'\
             f'<b>Total Disk Space:</b> {get_readable_file_size(total)}\n'\
             f'<b>Used:</b> {get_readable_file_size(used)} | <b>Free:</b> {get_readable_file_size(free)}\n\n'\
             f'<b>Upload:</b> {get_readable_file_size(net_io_counters().bytes_sent)}\n'\
             f'<b>Download:</b> {get_readable_file_size(net_io_counters().bytes_recv)}\n\n'\
             f'<b>CPU:</b> {cpu_percent(interval=0.5)}%\n'\
             f'<b>RAM:</b> {memory.percent}%\n'\
-            f'<b>DISK:</b> {disk}%\n\n'\
-            f'<b>Physical Cores:</b> {cpu_count(logical=False)}\n'\
-            f'<b>Total Cores:</b> {cpu_count(logical=True)}\n\n'\
-            f'<b>SWAP:</b> {get_readable_file_size(swap.total)} | <b>Used:</b> {swap.percent}%\n'\
-            f'<b>Memory Total:</b> {get_readable_file_size(memory.total)}\n'\
-            f'<b>Memory Free:</b> {get_readable_file_size(memory.available)}\n'\
-            f'<b>Memory Used:</b> {get_readable_file_size(memory.used)}\n'
+            f'<b>DISK:</b> {disk}%'
     sendMessage(stats, context.bot, update.message)
 
 def start(update, context):
     buttons = ButtonMaker()
-    buttons.buildbutton("Repo", "https://www.github.com/anasty17/mirror-leech-telegram-bot")
-    buttons.buildbutton("Owner", "https://www.github.com/anasty17")
+    buttons.buildbutton("Owner", "https://t.me/hitesh920")
+    buttons.buildbutton("Channel", "https://t.me/ghost_mirror")
     reply_markup = buttons.build_menu(2)
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         start_string = f'''
@@ -57,7 +44,7 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
 '''
         sendMarkup(start_string, context.bot, update.message, reply_markup)
     else:
-        sendMarkup('Not an Authorized user, deploy your own mirror-leech bot', context.bot, update.message, reply_markup)
+        sendMarkup('Not an Authorized user.', context.bot, update.message, reply_markup)
 
 def restart(update, context):
     restart_message = sendMessage("Restarting...", context.bot, update.message)
@@ -106,31 +93,12 @@ NOTE: Try each command without any perfix to see more detalis.
 /{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive.
 /{BotCommands.DeleteCommand} [drive_url]: Delete file/folder from Google Drive (Only Owner & Sudo).
 /{BotCommands.UserSetCommand} [query]: Users settings.
-/{BotCommands.BotSetCommand} [query]: Bot settings.
 /{BotCommands.BtSelectCommand}: Select files from torrents by gid or reply.
 /{BotCommands.CancelMirror}: Cancel task by gid or reply.
-/{BotCommands.CancelAllCommand} [query]: Cancel all [status] tasks.
 /{BotCommands.ListCommand} [query]: Search in Google Drive(s).
-/{BotCommands.SearchCommand} [query]: Search for torrents with API.
 /{BotCommands.StatusCommand}: Shows a status of all the downloads.
 /{BotCommands.StatsCommand}: Show stats of the machine where the bot is hosted in.
 /{BotCommands.PingCommand}: Check how long it takes to Ping the Bot (Only Owner & Sudo).
-/{BotCommands.AuthorizeCommand}: Authorize a chat or a user to use the bot (Only Owner & Sudo).
-/{BotCommands.UnAuthorizeCommand}: Unauthorize a chat or a user to use the bot (Only Owner & Sudo).
-/{BotCommands.UsersCommand}: show users settings (Only Owner & Sudo).
-/{BotCommands.AddSudoCommand}: Add sudo user (Only Owner).
-/{BotCommands.RmSudoCommand}: Remove sudo users (Only Owner).
-/{BotCommands.RestartCommand}: Restart and update the bot (Only Owner & Sudo).
-/{BotCommands.LogCommand}: Get a log file of the bot. Handy for getting crash reports (Only Owner & Sudo).
-/{BotCommands.ShellCommand}: Run shell commands (Only Owner).
-/{BotCommands.EvalCommand}: Run Python Code Line | Lines (Only Owner).
-/{BotCommands.ExecCommand}: Run Commands In Exec (Only Owner).
-/{BotCommands.ClearLocalsCommand}: Clear {BotCommands.EvalCommand} or {BotCommands.ExecCommand} locals (Only Owner).
-/{BotCommands.RssListCommand[0]} or /{BotCommands.RssListCommand[1]}: List all subscribed rss feed info (Only Owner & Sudo).
-/{BotCommands.RssGetCommand[0]} or /{BotCommands.RssGetCommand[1]}: Force fetch last N links (Only Owner & Sudo).
-/{BotCommands.RssSubCommand[0]} or /{BotCommands.RssSubCommand[1]}: Subscribe new rss feed (Only Owner & Sudo).
-/{BotCommands.RssUnSubCommand[0]} or /{BotCommands.RssUnSubCommand[1]}: Unubscribe rss feed by title (Only Owner & Sudo).
-/{BotCommands.RssSettingsCommand[0]} or /{BotCommands.RssSettingsCommand[1]} [query]: Rss Settings (Only Owner & Sudo).
 '''
 
 def bot_help(update, context):

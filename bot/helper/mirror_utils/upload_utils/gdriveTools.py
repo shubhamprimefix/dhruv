@@ -378,17 +378,17 @@ class GoogleDriveHelper:
                 msg += f'\n<b>SubFolders: </b>{self.__total_folders}'
                 msg += f'\n<b>Files: </b>{self.__total_files}'
                 buttons = ButtonMaker()
-                buttons.buildbutton("☁️ Drive Link", durl)
+                buttons.buildbutton("Drive Link", durl)
                 if INDEX_URL := config_dict['INDEX_URL']:
                     url_path = rquote(f'{meta.get("name")}', safe='')
                     url = f'{INDEX_URL}/{url_path}/'
-                    buttons.buildbutton("⚡ Index Link", url)
+                    buttons.buildbutton("Index Link", url)
             else:
                 file = self.__copyFile(meta.get('id'), config_dict['GDRIVE_ID'])
                 msg += f'<b>Name: </b><code>{file.get("name")}</code>'
                 durl = self.__G_DRIVE_BASE_DOWNLOAD_URL.format(file.get("id"))
                 buttons = ButtonMaker()
-                buttons.buildbutton("☁️ Drive Link", durl)
+                buttons.buildbutton("Drive Link", durl)
                 if mime_type is None:
                     mime_type = 'File'
                 msg += f'\n\n<b>Size: </b>{get_readable_file_size(int(meta.get("size", 0)))}'
@@ -396,10 +396,10 @@ class GoogleDriveHelper:
                 if INDEX_URL := config_dict['INDEX_URL']:
                     url_path = rquote(f'{file.get("name")}', safe='')
                     url = f'{INDEX_URL}/{url_path}'
-                    buttons.buildbutton("⚡ Index Link", url)
+                    buttons.buildbutton("Index Link", url)
                     if config_dict['VIEW_LINK']:
                         urlv = f'{INDEX_URL}/{url_path}?a=view'
-                        buttons.buildbutton("🌐 View Link", urlv)
+                        buttons.buildbutton("View Link", urlv)
         except Exception as err:
             if isinstance(err, RetryError):
                 LOGGER.info(f"Total Attempts: {err.last_attempt.attempt_number}")
@@ -614,7 +614,7 @@ class GoogleDriveHelper:
 
         msg = f"<b>Found {contents_count} result for <i>{fileName}</i></b>"
         buttons = ButtonMaker()
-        buttons.buildbutton("🔎 VIEW", f"https://telegra.ph/{path[0]}")
+        buttons.buildbutton("VIEW", f"https://telegra.ph/{path[0]}")
 
         return msg, buttons.build_menu(1)
 
