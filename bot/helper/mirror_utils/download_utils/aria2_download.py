@@ -3,10 +3,10 @@ from os import remove, path as ospath
 
 from bot import aria2, download_dict_lock, download_dict, LOGGER, config_dict, aria2_options, aria2c_global
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
-from bot.helper.ext_utils.bot_utils import is_magnet, getDownloadByGid, new_thread, bt_selection_buttons
+from bot.helper.ext_utils.bot_utils import is_magnet, getDownloadByGid, new_thread, bt_selection_buttons, get_readable_file_size
 from bot.helper.mirror_utils.status_utils.aria_download_status import AriaDownloadStatus
 from bot.helper.telegram_helper.message_utils import sendMarkup, sendStatusMessage, sendMessage, deleteMessage, update_all_messages
-from bot.helper.ext_utils.fs_utils import get_base_name, clean_unwanted
+from bot.helper.ext_utils.fs_utils import get_base_name, clean_unwanted, check_storage_threshold
 
 
 @new_thread
@@ -56,7 +56,45 @@ def __onDownloadStarted(api, gid):
                         return sendMarkup("Here are the search results:", listener.bot, listener.message, button)
     except Exception as e:
         LOGGER.error(f"{e} onDownloadStart: {gid} check duplicate didn't pass")
-
+    ZIP_UNZIP_LIMIT = config_dict['ZIP_UNZIP_LIMIT']
+    LEECH_LIMIT = config_dict['LEECH_LIMIT']
+    TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
+    STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
+    if any([ZIP_UNZIP_LIMIT, LEECH_LIMIT, TORRENT_LIMIT, STORAGE_THRESHOLD]):
+        sleep(1)
+        if dl := getDownloadByGid(gid):
+            listener = dl.listener()
+            if listener.select:
+                return
+            download = api.get_download(gid)
+            if not download.is_torrent:
+                sleep(3)
+                download = download.live
+        limit = None
+        size = download.total_length
+        arch = any([listener.isZip, listener.isLeech, listener.extract])
+        if STORAGE_THRESHOLD:
+            acpt = check_storage_threshold(size, arch, True)
+            if not acpt:
+                msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
+                msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
+                listener.onDownloadError(msg)
+                return api.remove([download], force=True, files=True)
+        if ZIP_UNZIP_LIMIT and arch:
+            msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
+            limit = ZIP_UNZIP_LIMIT
+        if LEECH_LIMIT and listener.isLeech:
+            msg = f'Leech limit is {LEECH_LIMIT}GB'
+            limit = LEECH_LIMIT
+        elif TORRENT_LIMIT:
+            msg = f'Torrent/Direct limit is {TORRENT_LIMIT}GB'
+            limit = TORRENT_LIMIT
+        if limit is not None:
+            LOGGER.info('Checking File/Folder Size...')
+            if size > limit * 1024**3:
+                listener.onDownloadError(f'{msg}.\nYour File/Folder size is {get_readable_file_size(size)}')
+                return api.remove([download], force=True, files=True)
+                
 @new_thread
 def __onDownloadComplete(api, gid):
     try:

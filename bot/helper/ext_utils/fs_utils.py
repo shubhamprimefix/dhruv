@@ -1,7 +1,7 @@
 from os import remove as osremove, path as ospath, mkdir, walk, listdir, rmdir, makedirs
 from sys import exit as sysexit
 from json import loads as jsonloads
-from shutil import rmtree
+from shutil import rmtree, disk_usage
 from PIL import Image
 from magic import Magic
 from subprocess import run as srun, check_output, Popen
@@ -261,3 +261,17 @@ def get_media_streams(path):
 
     return is_video, is_audio
 
+def check_storage_threshold(size: int, arch=False, alloc=False):
+    STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
+    if not alloc:
+        if not arch:
+            if disk_usage(DOWNLOAD_DIR).free - size < STORAGE_THRESHOLD * 1024**3:
+                return False
+        elif disk_usage(DOWNLOAD_DIR).free - (size * 2) < STORAGE_THRESHOLD * 1024**3:
+            return False
+    elif not arch:
+        if disk_usage(DOWNLOAD_DIR).free < STORAGE_THRESHOLD * 1024**3:
+            return False
+    elif disk_usage(DOWNLOAD_DIR).free - size < STORAGE_THRESHOLD * 1024**3:
+        return False
+    return True

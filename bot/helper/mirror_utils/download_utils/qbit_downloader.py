@@ -10,8 +10,8 @@ from bot import download_dict, download_dict_lock, get_client, LOGGER, QbInterva
 from bot.helper.mirror_utils.status_utils.qbit_download_status import QbDownloadStatus
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, deleteMessage, sendStatusMessage, update_all_messages
-from bot.helper.ext_utils.bot_utils import get_readable_time, setInterval, bt_selection_buttons, getDownloadByGid, new_thread
-from bot.helper.ext_utils.fs_utils import clean_unwanted, get_base_name
+from bot.helper.ext_utils.bot_utils import get_readable_time, setInterval, bt_selection_buttons, getDownloadByGid, new_thread, get_readable_file_size
+from bot.helper.ext_utils.fs_utils import clean_unwanted, get_base_name, check_storage_threshold
 
 qb_download_lock = Lock()
 STALLED_TIME = {}
@@ -19,6 +19,7 @@ STOP_DUP_CHECK = set()
 RECHECKED = set()
 UPLOADED = set()
 SEEDING = set()
+CHECK_LIMIT = set()
 
 def __get_hash_magnet(mgt: str):
     hash_ = re_search(r'(?<=xt=urn:btih:)[a-zA-Z0-9]+', mgt).group(0)
@@ -121,6 +122,8 @@ def __remove_torrent(client, hash_):
             UPLOADED.remove(hash_)
         if hash_ in SEEDING:
             SEEDING.remove(hash_)
+        if hash_ in CHECK_LIMIT:
+            CHECK_LIMIT.remove(hash_)
 
 def __onDownloadError(err, client, tor):
     LOGGER.info(f"Cancelling Download: {tor.name}")
@@ -169,6 +172,43 @@ def __stop_duplicate(client, tor):
     except:
         pass
 
+@new_thread
+def __check_limit(client, tor):
+    download = getDownloadByGid(tor.hash[:12])
+    try:
+        listener = download.listener()
+        size = tor.size
+        arch = any([listener.isZip, listener.extract])
+        ZIP_UNZIP_LIMIT = config_dict['ZIP_UNZIP_LIMIT']
+        TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
+        STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
+        TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
+        LEECH_LIMIT = config_dict['LEECH_LIMIT']
+        if STORAGE_THRESHOLD:
+            acpt = check_storage_threshold(size, arch)
+            if not acpt:
+                msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
+                msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
+                Thread(target=__onDownloadError, args=(msg, client, tor)).start()
+                return
+        limit = None
+        if ZIP_UNZIP_LIMIT and arch:
+            msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
+            limit = ZIP_UNZIP_LIMIT
+        if LEECH_LIMIT and listener.isLeech:
+            msg = f'Leech limit is {LEECH_LIMIT}GB'
+            limit = LEECH_LIMIT
+        elif TORRENT_LIMIT:
+            msg = f'Torrent limit is {TORRENT_LIMIT}GB'
+            limit = TORRENT_LIMIT
+        if limit is not None:
+            LOGGER.info('Checking File/Folder Size...')
+            if size > limit * 1024**3:
+                fmsg = f"{msg}.\nYour File/Folder size is {get_readable_file_size(size)}"
+                Thread(target=__onDownloadError, args=(fmsg, client, tor)).start()
+    except:
+        pass
+    
 @new_thread
 def __onDownloadComplete(client, tor):
     download = getDownloadByGid(tor.hash[:12])
@@ -219,6 +259,13 @@ def __qb_listener():
                     if config_dict['STOP_DUPLICATE'] and tor_info.hash not in STOP_DUP_CHECK:
                         STOP_DUP_CHECK.add(tor_info.hash)
                         __stop_duplicate(client, tor_info)
+                    ZIP_UNZIP_LIMIT = config_dict['ZIP_UNZIP_LIMIT']
+                    TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
+                    STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
+                    LEECH_LIMIT = config_dict['LEECH_LIMIT']
+                    if any([ZIP_UNZIP_LIMIT, TORRENT_LIMIT, STORAGE_THRESHOLD, LEECH_LIMIT])and tor_info.hash not in CHECK_LIMIT:
+                        CHECK_LIMIT.add(tor_info.hash)
+                        __check_limit(client, tor_info)
                 elif tor_info.state == "stalledDL":
                     TORRENT_TIMEOUT = config_dict['TORRENT_TIMEOUT']
                     if tor_info.hash not in RECHECKED and 0.99989999999999999 < tor_info.progress < 1:

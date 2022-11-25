@@ -287,6 +287,30 @@ UPSTREAM_BRANCH = environ.get('UPSTREAM_BRANCH', '')
 if len(UPSTREAM_BRANCH) == 0:
     UPSTREAM_BRANCH = 'master'
 
+USER_TASKS_LIMIT = environ.get('USER_TASKS_LIMIT', '')
+USER_TASKS_LIMIT = '' if len(USER_TASKS_LIMIT) == 0 else int(USER_TASKS_LIMIT)    
+
+TOTAL_TASKS_LIMIT = environ.get('TOTAL_TASKS_LIMIT')
+TOTAL_TASKS_LIMIT = '' if len(TOTAL_TASKS_LIMIT) == 0 else int(TOTAL_TASKS_LIMIT)    
+
+STORAGE_THRESHOLD = environ.get('STORAGE_THRESHOLD', '')
+STORAGE_THRESHOLD = '' if len(STORAGE_THRESHOLD) == 0 else float(STORAGE_THRESHOLD)
+    
+ZIP_UNZIP_LIMIT = environ.get('ZIP_UNZIP_LIMIT', '')
+ZIP_UNZIP_LIMIT = '' if len(ZIP_UNZIP_LIMIT) == 0 else float(ZIP_UNZIP_LIMIT)
+
+TORRENT_LIMIT = environ.get('TORRENT_LIMIT', '')
+TORRENT_LIMIT = '' if len(TORRENT_LIMIT) == 0 else float(TORRENT_LIMIT)
+
+CLONE_LIMIT = environ.get('CLONE_LIMIT', '')
+CLONE_LIMIT = '' if len(CLONE_LIMIT) == 0 else float(CLONE_LIMIT)
+
+LEECH_LIMIT = environ.get('LEECH_LIMIT', '')
+LEECH_LIMIT = '' if len(LEECH_LIMIT) == 0 else float(LEECH_LIMIT)
+    
+MEGA_LIMIT = environ.get('MEGA_LIMIT', '')
+MEGA_LIMIT = '' if len(MEGA_LIMIT) == 0 else float(MEGA_LIMIT)    
+
 config_dict = {'AS_DOCUMENT': AS_DOCUMENT,
                'AUTHORIZED_CHATS': AUTHORIZED_CHATS,
                'AUTO_DELETE_MESSAGE_DURATION': AUTO_DELETE_MESSAGE_DURATION,
@@ -331,7 +355,15 @@ config_dict = {'AS_DOCUMENT': AS_DOCUMENT,
                'USE_SERVICE_ACCOUNTS': USE_SERVICE_ACCOUNTS,
                'VIEW_LINK': VIEW_LINK,
                'WEB_PINCODE': WEB_PINCODE,
-               'YT_DLP_QUALITY': YT_DLP_QUALITY}
+               'YT_DLP_QUALITY': YT_DLP_QUALITY,
+               'USER_TASKS_LIMIT': USER_TASKS_LIMIT,
+               'TOTAL_TASKS_LIMIT': TOTAL_TASKS_LIMIT,
+               'STORAGE_THRESHOLD': STORAGE_THRESHOLD,
+               'ZIP_UNZIP_LIMIT': ZIP_UNZIP_LIMIT,
+               'TORRENT_LIMIT': TORRENT_LIMIT,
+               'CLONE_LIMIT': CLONE_LIMIT,
+               'LEECH_LIMIT': LEECH_LIMIT,
+               'MEGA_LIMIT': MEGA_LIMIT}
 
 if GDRIVE_ID:
     DRIVES_NAMES.append("Main")

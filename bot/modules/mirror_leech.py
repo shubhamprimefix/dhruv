@@ -6,7 +6,7 @@ from threading import Thread
 from telegram.ext import CommandHandler
 from requests import get as rget
 
-from bot import dispatcher, DOWNLOAD_DIR, LOGGER
+from bot import dispatcher, DOWNLOAD_DIR, LOGGER, config_dict, download_dict
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.mirror_utils.download_utils.aria2_download import add_aria2c_download
@@ -19,9 +19,19 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import sendMessage
 from .listener import MirrorLeechListener
+from bot.helper.ext_utils.bot_utils import get_user_task
 
 
 def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeech=False):
+    user_id = message.from_user.id
+    total_task = len(download_dict)
+    USER_TASKS_LIMIT = config_dict['USER_TASKS_LIMIT']
+    TOTAL_TASKS_LIMIT = config_dict['TOTAL_TASKS_LIMIT']
+    if user_id != config_dict['OWNER_ID']:
+        if TOTAL_TASKS_LIMIT == total_task:
+            return sendMessage(f"Total task limit: {TOTAL_TASKS_LIMIT}\nTasks processing: {total_task}\n\nTotal limit exceeded!", bot ,message)
+        if USER_TASKS_LIMIT == get_user_task(user_id):
+            return sendMessage(f"User task limit: {USER_TASKS_LIMIT} \nYour tasks: {get_user_task(user_id)}\n\nUser limit exceeded!", bot ,message)
     mesg = message.text.split('\n')
     message_args = mesg[0].split(maxsplit=1)
     index = 1

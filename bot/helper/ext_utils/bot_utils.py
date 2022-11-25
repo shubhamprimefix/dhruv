@@ -272,3 +272,10 @@ def update_user_ldata(id_, key, value):
         user_data[id_][key] = value
     else:
         user_data[id_] = {key: value}
+
+def get_user_task(user_id):
+    user_task = 0
+    for task in list(download_dict.values()):
+        userid = task.message.from_user.id
+        if userid == user_id: user_task += 1
+    return user_task

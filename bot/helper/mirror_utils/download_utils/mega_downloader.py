@@ -6,10 +6,10 @@ from mega import (MegaApi, MegaListener, MegaRequest, MegaTransfer, MegaError)
 
 from bot import LOGGER, config_dict, download_dict_lock, download_dict
 from bot.helper.telegram_helper.message_utils import sendMessage, sendStatusMessage, sendMarkup
-from bot.helper.ext_utils.bot_utils import get_mega_link_type
+from bot.helper.ext_utils.bot_utils import get_mega_link_type, get_readable_file_size
 from bot.helper.mirror_utils.status_utils.mega_download_status import MegaDownloadStatus
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
-from bot.helper.ext_utils.fs_utils import get_base_name
+from bot.helper.ext_utils.fs_utils import get_base_name, check_storage_threshold
 
 
 class MegaAppListener(MegaListener):
@@ -174,6 +174,25 @@ def add_mega_download(mega_link: str, path: str, listener, name: str):
                 if folder_api is not None:
                     folder_api.removeListener(mega_listener)
                 return
+    STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
+    MEGA_LIMIT = config_dict['MEGA_LIMIT']
+    if any([STORAGE_THRESHOLD, MEGA_LIMIT]):
+        size = api.getSize(node)
+        arch = any([listener.isZip, listener.isLeech, listener.extract])
+        if STORAGE_THRESHOLD:
+            acpt = check_storage_threshold(size, arch)
+            if not acpt:
+                msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
+                msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
+                return sendMessage(msg, listener.bot, listener.message)
+        limit = None
+        if MEGA_LIMIT:
+            msg = f'Failed, Mega limit is {MEGA_LIMIT}GB.\nYour File/Folder size is {get_readable_file_size(api.getSize(node))}.'
+            limit = MEGA_LIMIT
+        if limit is not None:
+            LOGGER.info('Checking File/Folder Size...')
+            if size > limit * 1024**3:
+                return sendMessage(msg, listener.bot, listener.message)
     with download_dict_lock:
         download_dict[listener.uid] = MegaDownloadStatus(mega_listener, listener)
     listener.onDownloadStart()

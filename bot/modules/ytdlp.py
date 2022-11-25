@@ -3,10 +3,10 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from time import sleep
 from re import split as re_split
 
-from bot import DOWNLOAD_DIR, dispatcher, config_dict, user_data
+from bot import DOWNLOAD_DIR, dispatcher, config_dict, user_data, download_dict
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage
 from bot.helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.ext_utils.bot_utils import get_readable_file_size, is_url
+from bot.helper.ext_utils.bot_utils import get_readable_file_size, is_url, get_user_task
 from bot.helper.mirror_utils.download_utils.yt_dlp_download_helper import YoutubeDLHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -15,6 +15,15 @@ from .listener import MirrorLeechListener
 listener_dict = {}
 
 def _ytdl(bot, message, isZip=False, isLeech=False):
+    user_id = message.from_user.id
+    total_task = len(download_dict)
+    USER_TASKS_LIMIT = config_dict['USER_TASKS_LIMIT']
+    TOTAL_TASKS_LIMIT = config_dict['TOTAL_TASKS_LIMIT']
+    if user_id != config_dict['OWNER_ID']:
+        if TOTAL_TASKS_LIMIT == total_task:
+            return sendMessage(f"Total task limit: {TOTAL_TASKS_LIMIT}\nTasks processing: {total_task}\n\nTotal limit exceeded!", bot ,message)
+        if USER_TASKS_LIMIT == get_user_task(user_id):
+            return sendMessage(f"User task limit: {USER_TASKS_LIMIT} \nYour tasks: {get_user_task(user_id)}\n\nUser limit exceeded!", bot ,message)
     mssg = message.text
     user_id = message.from_user.id
     msg_id = message.message_id

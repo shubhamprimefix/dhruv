@@ -10,10 +10,19 @@ from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.mirror_utils.status_utils.clone_status import CloneStatus
 from bot import dispatcher, LOGGER, download_dict, download_dict_lock, Interval, config_dict
-from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread
+from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, get_user_task, get_readable_file_size
 
 
 def _clone(message, bot):
+    user_id = message.from_user.id
+    total_task = len(download_dict)
+    USER_TASKS_LIMIT = config_dict['USER_TASKS_LIMIT']
+    TOTAL_TASKS_LIMIT = config_dict['TOTAL_TASKS_LIMIT']
+    if user_id != config_dict['OWNER_ID']:
+        if TOTAL_TASKS_LIMIT == total_task:
+            return sendMessage(f"Total task limit: {TOTAL_TASKS_LIMIT}\nTasks processing: {total_task}\n\nTotal limit exceeded!", bot ,message)
+        if USER_TASKS_LIMIT == get_user_task(user_id):
+            return sendMessage(f"User task limit: {USER_TASKS_LIMIT} \nYour tasks: {get_user_task(user_id)}\n\nUser limit exceeded!", bot ,message)
     args = message.text.split()
     reply_to = message.reply_to_message
     link = ''
@@ -45,6 +54,12 @@ def _clone(message, bot):
             if smsg:
                 msg = "File/Folder is already available in Drive.\nHere are the search results:"
                 return sendMarkup(msg, bot, message, button)
+        CLONE_LIMIT = config_dict['CLONE_LIMIT']
+        if CLONE_LIMIT:
+            LOGGER.info('Checking File/Folder Size...')
+            if size > CLONE_LIMIT * 1024**3:
+                msg = f'Failed, Clone limit is {CLONE_LIMIT}GB.\nYour File/Folder size is {get_readable_file_size(size)}.'
+                return sendMessage(msg, bot, message)
         if multi > 1:
             sleep(4)
             nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})
