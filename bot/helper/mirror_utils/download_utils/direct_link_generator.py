@@ -15,11 +15,12 @@ from json import loads as jsonloads
 from lk21 import Bypass
 from cfscrape import create_scraper
 from bs4 import BeautifulSoup
-from base64 import standard_b64encode
+from base64 import standard_b64encode, b64decode
 from time import sleep
 
 from bot import LOGGER, config_dict
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
+from bot.helper.ext_utils.bot_utils import is_gdtot_link
 
 fmed_list = ['fembed.net', 'fembed.com', 'femax20.com', 'fcdn.stream', 'feurl.com', 'layarkacaxxi.icu',
              'naniplay.nanime.in', 'naniplay.nanime.biz', 'naniplay.com', 'mm9842.com']
@@ -69,6 +70,8 @@ def direct_link_generator(link: str):
         return fembed(link)
     elif any(x in link for x in ['sbembed.com', 'watchsb.com', 'streamsb.net', 'sbplay.org']):
         return sbembed(link)
+    elif is_gdtot_link(link):
+        return gdtot(link)
     else:
         raise DirectDownloadLinkException(f'No Direct link function found for {link}')
 
@@ -375,3 +378,21 @@ def uploadee(url: str) -> str:
         return sa['href']
     except:
         raise DirectDownloadLinkException(f"ERROR: Failed to acquire download URL from upload.ee for : {url}")
+
+def gdtot(url: str) -> str:
+    """ Gdtot google drive link generator
+    By https://github.com/xcscxr """
+    CRYPT = config_dict['CRYPT']
+    if CRYPT == '':
+        raise DirectDownloadLinkException("ERROR: CRYPT cookie not provided")
+    match = re_findall(r'https?://(.+)\.gdtot\.(.+)\/\S+\/\S+', url)[0]
+    with rsession() as client:
+        client.cookies.update({'crypt': CRYPT})
+        client.get(url)
+        res = client.get(f"https://{match[0]}.gdtot.{match[1]}/dld?id={url.split('/')[-1]}")
+    matches = re_findall('gd=(.*?)&', res.text)
+    try:
+        decoded_id = b64decode(str(matches[0])).decode('utf-8')
+    except:
+        raise DirectDownloadLinkException("ERROR: Try in your broswer, mostly file not found or user limit exceeded!")
+    return f'https://drive.google.com/open?id={decoded_id}'

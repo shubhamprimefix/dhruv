@@ -7,7 +7,7 @@ from telegram.ext import CommandHandler
 from requests import get as rget
 
 from bot import dispatcher, DOWNLOAD_DIR, LOGGER, config_dict, download_dict
-from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type
+from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type, is_gdtot_link
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
 from bot.helper.mirror_utils.download_utils.aria2_download import add_aria2c_download
 from bot.helper.mirror_utils.download_utils.gd_downloader import add_gd_download
@@ -17,7 +17,7 @@ from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendMessage
+from bot.helper.telegram_helper.message_utils import sendMessage, deleteMessage
 from .listener import MirrorLeechListener
 from bot.helper.ext_utils.bot_utils import get_user_task
 
@@ -155,6 +155,19 @@ Number should be always before |newname or pswd:
         return sendMessage(help_msg, bot, message)
 
     LOGGER.info(link)
+
+    is_gdtot = is_gdtot_link(link)
+    if is_gdtot and isLeech:
+        try:
+            msg = sendMessage(f"Processing: <code>{link}</code>", bot, message)
+            LOGGER.info(f"Processing: {link}")
+            if is_gdtot:
+                link = direct_link_generator(link)
+            LOGGER.info(f"Processing GdToT: {link}")
+            deleteMessage(bot, msg)
+        except DirectDownloadLinkException as e:
+            deleteMessage(bot, msg)
+            return sendMessage(str(e), bot, message)
 
     if not is_mega_link(link) and not isQbit and not is_magnet(link) \
         and not is_gdrive_link(link) and not link.endswith('.torrent'):

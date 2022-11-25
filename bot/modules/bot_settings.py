@@ -250,6 +250,10 @@ def load_config():
     MEGA_LIMIT = environ.get('MEGA_LIMIT', '')
     MEGA_LIMIT = '' if len(MEGA_LIMIT) == 0 else float(MEGA_LIMIT)    
 
+    CRYPT = environ.get('CRYPT', '')
+    if len(CRYPT) == 0:
+        CRYPT = ''
+
     DRIVES_IDS.clear()
     DRIVES_NAMES.clear()
     INDEX_URLS.clear()
@@ -326,7 +330,8 @@ def load_config():
                         'TORRENT_LIMIT': TORRENT_LIMIT,
                         'CLONE_LIMIT': CLONE_LIMIT,
                         'LEECH_LIMIT': LEECH_LIMIT,
-                        'MEGA_LIMIT': MEGA_LIMIT})
+                        'MEGA_LIMIT': MEGA_LIMIT,
+                        'CRYPT': CRYPT})
 
     if DATABASE_URL:
         DbManger().update_config(config_dict)

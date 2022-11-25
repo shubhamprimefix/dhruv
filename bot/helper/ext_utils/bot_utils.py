@@ -1,4 +1,4 @@
-from re import findall as re_findall
+from re import findall as re_findall, match as re_match
 from threading import Thread, Event
 from time import time
 from math import ceil
@@ -279,3 +279,7 @@ def get_user_task(user_id):
         userid = task.message.from_user.id
         if userid == user_id: user_task += 1
     return user_task
+
+def is_gdtot_link(url: str):
+    url = re_match(r'https?://.+\.gdtot\.\S+', url)
+    return bool(url)

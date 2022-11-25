@@ -311,6 +311,10 @@ LEECH_LIMIT = '' if len(LEECH_LIMIT) == 0 else float(LEECH_LIMIT)
 MEGA_LIMIT = environ.get('MEGA_LIMIT', '')
 MEGA_LIMIT = '' if len(MEGA_LIMIT) == 0 else float(MEGA_LIMIT)    
 
+CRYPT = environ.get('CRYPT', '')
+if len(CRYPT) == 0:
+    CRYPT = ''
+
 config_dict = {'AS_DOCUMENT': AS_DOCUMENT,
                'AUTHORIZED_CHATS': AUTHORIZED_CHATS,
                'AUTO_DELETE_MESSAGE_DURATION': AUTO_DELETE_MESSAGE_DURATION,
@@ -363,7 +367,8 @@ config_dict = {'AS_DOCUMENT': AS_DOCUMENT,
                'TORRENT_LIMIT': TORRENT_LIMIT,
                'CLONE_LIMIT': CLONE_LIMIT,
                'LEECH_LIMIT': LEECH_LIMIT,
-               'MEGA_LIMIT': MEGA_LIMIT}
+               'MEGA_LIMIT': MEGA_LIMIT,
+               'CRYPT': CRYPT}
 
 if GDRIVE_ID:
     DRIVES_NAMES.append("Main")
