@@ -115,8 +115,9 @@ def get_progress_bar_string(status):
     p = 0 if total == 0 else round(completed * 100 / total)
     p = min(max(p, 0), 100)
     cFull = p // 8
-    p_str = '■' * cFull
-    p_str += '□' * (12 - cFull)
+    max_size = 100 // 8
+    p_str = '█' * cFull
+    p_str += ' ' * (max_size - cFull)
     p_str = f"[{p_str}]"
     return p_str
 
@@ -133,7 +134,7 @@ def get_readable_message():
             msg += f"<b><a href='{download.message.link}'>{download.status()}</a>: </b>"
             msg += f"<code>{escape(str(download.name()))}</code>"
             if download.status() not in [MirrorStatus.STATUS_SPLITTING, MirrorStatus.STATUS_SEEDING]:
-                msg += f"\n{get_progress_bar_string(download)} {download.progress()}"
+                msg += f"\n<code>{get_progress_bar_string(download)}</code> {download.progress()}"
                 msg += f"\n<b>Processed:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
                 msg += f"\n<b>Speed:</b> {download.speed()} | <b>ETA:</b> {download.eta()}"
                 if hasattr(download, 'seeders_num'):

@@ -1,6 +1,6 @@
 services:
   app:
-    container_name: personal-mb
+    container_name: mltb-modified
     build: .
     restart: on-failure
     ports:
