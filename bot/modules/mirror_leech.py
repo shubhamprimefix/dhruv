@@ -17,10 +17,10 @@ from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendMessage, deleteMessage
+from bot.helper.telegram_helper.message_utils import sendMessage, deleteMessage, sendMarkup, auto_delete_message
 from .listener import MirrorLeechListener
 from bot.helper.ext_utils.bot_utils import get_user_task
-
+from bot.helper.telegram_helper.button_build import ButtonMaker
 
 def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeech=False):
     user_id = message.from_user.id
@@ -32,6 +32,23 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
             return sendMessage(f"Total task limit: {TOTAL_TASKS_LIMIT}\nTasks processing: {total_task}\n\nTotal limit exceeded!", bot ,message)
         if USER_TASKS_LIMIT == get_user_task(user_id):
             return sendMessage(f"User task limit: {USER_TASKS_LIMIT} \nYour tasks: {get_user_task(user_id)}\n\nUser limit exceeded!", bot ,message)
+    if config_dict['BOT_PM'] and message.chat.type != 'private':
+        buttons = ButtonMaker()	
+        try:
+            msg = f'Test msg.'
+            send = bot.sendMessage(message.from_user.id, text=msg)
+            send.delete()
+        except Exception as e:
+            LOGGER.warning(e)
+            bot_d = bot.get_me()
+            b_uname = bot_d.username
+            uname = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.first_name}</a>'
+            botstart = f"http://t.me/{b_uname}"
+            buttons.buildbutton("Click here to start me!", f"{botstart}")
+            startwarn = f"Dear {uname},\nI found that you haven't started me in PM yet.\n\n" \
+                        f"Start me in PM so that i can send a copy of your Files/Links in your PM."
+            message = sendMarkup(startwarn, bot, message, buttons.build_menu(1))
+            return
     mesg = message.text.split('\n')
     message_args = mesg[0].split(maxsplit=1)
     index = 1

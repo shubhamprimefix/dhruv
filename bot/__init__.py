@@ -315,6 +315,9 @@ CRYPT = environ.get('CRYPT', '')
 if len(CRYPT) == 0:
     CRYPT = ''
 
+BOT_PM = environ.get('BOT_PM', '')	
+BOT_PM = BOT_PM.lower() == 'true'	    
+
 config_dict = {'AS_DOCUMENT': AS_DOCUMENT,
                'AUTHORIZED_CHATS': AUTHORIZED_CHATS,
                'AUTO_DELETE_MESSAGE_DURATION': AUTO_DELETE_MESSAGE_DURATION,
@@ -368,7 +371,8 @@ config_dict = {'AS_DOCUMENT': AS_DOCUMENT,
                'CLONE_LIMIT': CLONE_LIMIT,
                'LEECH_LIMIT': LEECH_LIMIT,
                'MEGA_LIMIT': MEGA_LIMIT,
-               'CRYPT': CRYPT}
+               'CRYPT': CRYPT,
+               'BOT_PM': BOT_PM}
 
 if GDRIVE_ID:
     DRIVES_NAMES.append("Main")

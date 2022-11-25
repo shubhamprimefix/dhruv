@@ -254,6 +254,9 @@ def load_config():
     if len(CRYPT) == 0:
         CRYPT = ''
 
+    BOT_PM = environ.get('BOT_PM', '')	
+    BOT_PM = BOT_PM.lower() == 'true'	    
+
     DRIVES_IDS.clear()
     DRIVES_NAMES.clear()
     INDEX_URLS.clear()
@@ -331,7 +334,8 @@ def load_config():
                         'CLONE_LIMIT': CLONE_LIMIT,
                         'LEECH_LIMIT': LEECH_LIMIT,
                         'MEGA_LIMIT': MEGA_LIMIT,
-                        'CRYPT': CRYPT})
+                        'CRYPT': CRYPT,
+                        'BOT_PM': BOT_PM})
 
     if DATABASE_URL:
         DbManger().update_config(config_dict)

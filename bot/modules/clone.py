@@ -13,6 +13,7 @@ from bot import dispatcher, LOGGER, download_dict, download_dict_lock, Interval,
 from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, get_user_task, get_readable_file_size, is_gdtot_link
 from bot.helper.mirror_utils.download_utils.direct_link_generator import gdtot
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
+from bot.helper.telegram_helper.button_build import ButtonMaker
 
 def _clone(message, bot):
     user_id = message.from_user.id
@@ -24,6 +25,23 @@ def _clone(message, bot):
             return sendMessage(f"Total task limit: {TOTAL_TASKS_LIMIT}\nTasks processing: {total_task}\n\nTotal limit exceeded!", bot ,message)
         if USER_TASKS_LIMIT == get_user_task(user_id):
             return sendMessage(f"User task limit: {USER_TASKS_LIMIT} \nYour tasks: {get_user_task(user_id)}\n\nUser limit exceeded!", bot ,message)
+    if config_dict['BOT_PM'] and message.chat.type != 'private':
+        buttons = ButtonMaker()	
+        try:
+            msg = f'Test msg.'
+            send = bot.sendMessage(message.from_user.id, text=msg)
+            send.delete()
+        except Exception as e:
+            LOGGER.warning(e)
+            bot_d = bot.get_me()
+            b_uname = bot_d.username
+            uname = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.first_name}</a>'
+            botstart = f"http://t.me/{b_uname}"
+            buttons.buildbutton("Click here to start me!", f"{botstart}")
+            startwarn = f"Dear {uname},\nI found that you haven't started me in PM yet.\n\n" \
+                        f"Start me in PM so that i can send a copy of your Files/Links in your PM."
+            message = sendMarkup(startwarn, bot, message, buttons.build_menu(1))
+            return
     args = message.text.split()
     reply_to = message.reply_to_message
     link = ''
@@ -112,6 +130,13 @@ def _clone(message, bot):
         else:
             sendMarkup(result + cc, bot, message, button)
             LOGGER.info(f'Cloning Done: {name}')
+        if config_dict['BOT_PM'] and message.chat.type != 'private':	
+            try:	
+                bot.sendMessage(message.from_user.id, text=result + cc, reply_markup=button,	
+                                parse_mode='HTML')
+            except Exception as e:	
+                LOGGER.warning(e)	
+                return
     else:
         sendMessage("Send Gdrive link along with command or by replying to the link by command\n\n<b>Multi links only by replying to first link/file:</b>\n<code>/cmd</code> 10(number of links/files)", bot, message)
 

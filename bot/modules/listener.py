@@ -5,7 +5,7 @@ from os import path as ospath, remove as osremove, listdir, walk
 from subprocess import Popen
 from html import escape
 
-from bot import Interval, aria2, DOWNLOAD_DIR, download_dict, download_dict_lock, LOGGER, DATABASE_URL, MAX_SPLIT_SIZE, config_dict, status_reply_dict_lock
+from bot import Interval, aria2, DOWNLOAD_DIR, download_dict, download_dict_lock, LOGGER, DATABASE_URL, MAX_SPLIT_SIZE, config_dict, status_reply_dict_lock, bot
 from bot.helper.ext_utils.fs_utils import get_base_name, get_path_size, split_file, clean_download, clean_target
 from bot.helper.ext_utils.exceptions import NotSupportedExtractionArchive
 from bot.helper.mirror_utils.status_utils.extract_status import ExtractStatus
@@ -37,6 +37,7 @@ class MirrorLeechListener:
         self.select = select
         self.isPrivate = message.chat.type in ['private', 'group']
         self.suproc = None
+        self.user_id = self.message.from_user.id	
 
     def clean(self):
         try:
@@ -259,6 +260,14 @@ class MirrorLeechListener:
                         share_urls = f'{INDEX_URL}/{url_path}?a=view'
                         buttons.buildbutton("View Link", share_urls)
             sendMarkup(msg, self.bot, self.message, buttons.build_menu(2))
+            if config_dict['BOT_PM'] and self.message.chat.type != 'private':	
+                try:	
+                    bot.sendMessage(chat_id=self.user_id, text=msg,	
+                                    reply_markup=buttons.build_menu(2),	
+                                    parse_mode='HTML')	
+                except Exception as e:	
+                    LOGGER.warning(e)	
+                    return
             if self.seed:
                 if self.isZip:
                     clean_target(f"{self.dir}/{name}")
