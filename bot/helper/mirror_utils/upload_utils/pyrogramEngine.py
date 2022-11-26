@@ -5,7 +5,7 @@ from pyrogram.errors import FloodWait, RPCError
 from PIL import Image
 from threading import RLock
 
-from bot import config_dict, user_data, GLOBAL_EXTENSION_FILTER, app
+from bot import config_dict, user_data, GLOBAL_EXTENSION_FILTER, app, IS_USER_SESSION
 from bot.helper.ext_utils.fs_utils import take_ss, get_media_info, get_media_streams, clean_unwanted
 from bot.helper.ext_utils.bot_utils import get_readable_file_size
 
@@ -145,6 +145,13 @@ class TgUploader:
                                                                  caption=cap_mono,
                                                                  disable_notification=True,
                                                                  progress=self.__upload_progress)
+            if config_dict['DUMP_CHAT'] and config_dict['BOT_PM']:
+                if IS_USER_SESSION:
+                    self.__listener.bot.copy_message(chat_id=self.__listener.message.from_user.id,
+                                                     from_chat_id=self.__sent_msg.chat.id,
+                                                     message_id=self.__sent_msg.id)
+                else:
+                    self.__sent_msg.copy(chat_id=self.__listener.message.from_user.id)
         except FloodWait as f:
             LOGGER.warning(str(f))
             sleep(f.value)
