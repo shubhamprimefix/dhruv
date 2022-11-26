@@ -139,36 +139,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 link = file_.get_file().file_path
 
     if not is_url(link) and not is_magnet(link):
-        help_msg = '''
-<code>/cmd</code> link |newname pswd: xx(zip/unzip)
-
-<b>By replying to link/file:</b>
-<code>/cmd</code> |newname pswd: xx(zip/unzip)
-
-<b>Direct link authorization:</b>
-<code>/cmd</code> link |newname pswd: xx(zip/unzip)
-<b>username</b>
-<b>password</b>
-
-<b>Bittorrent selection:</b>
-<code>/cmd</code> <b>s</b> link or by replying to file/link
-This perfix should be always before |newname or pswd:
-
-<b>Bittorrent seed</b>:
-<code>/cmd</code> <b>d</b> link or by replying to file/link
-To specify ratio and seed time add d:ratio:time. Ex: d:0.7:10 (ratio and time) or d:0.7 (only ratio) or d::10 (only time) where time in minutes.
-Those perfixes should be always before |newname or pswd:
-
-<b>Multi links only by replying to first link/file:</b>
-<code>/cmd</code> 10(number of links/files)
-Number should be always before |newname or pswd:
-
-<b>NOTES:</b>
-1. When use cmd by reply don't add any perfix in link msg! always add them after cmd msg!
-2. You can't add this perfixes <b>|newname, pswd: and authorization</b> randomly. They should be arranged like exmaple above, rename then pswd then authorization. If you don't want to add pswd for example then it will be (|newname authorization), just don't change the arrangement.
-3. You can add this perfixes <b>d, s and multi</b> randomly. Ex: <code>/cmd</code> d:1:20 s 10 <b>or</b> <code>/cmd</code> s 10 d:0.5:100
-4. Commands that start with <b>qb</b> are ONLY for torrents.
-'''
+        help_msg = "Send link along with command or by replying to the link by command."
         return sendMessage(help_msg, bot, message)
 
     LOGGER.info(link)

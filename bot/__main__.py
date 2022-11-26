@@ -44,7 +44,7 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
 '''
         sendMarkup(start_string, context.bot, update.message, reply_markup)
     else:
-        sendMarkup('Not an Authorized user.', context.bot, update.message, reply_markup)
+        sendMarkup('Bot started in PM. Now you can continue your Mirror/Leech in group and i will send those files here.', context.bot, update.message, reply_markup)
 
 def restart(update, context):
     restart_message = sendMessage("Restarting...", context.bot, update.message)
