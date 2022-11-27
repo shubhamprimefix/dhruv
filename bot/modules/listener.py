@@ -268,6 +268,14 @@ class MirrorLeechListener:
                 except Exception as e:	
                     LOGGER.warning(e)	
                     pass
+            if MIRROR_LOG := config_dict['MIRROR_LOG']:
+                try:
+                    bot.sendMessage(chat_id=MIRROR_LOG, text=msg,	
+                                    reply_markup=buttons.build_menu(2),	
+                                    parse_mode='HTML')	
+                except Exception as e:	
+                    LOGGER.warning(e)
+                    pass
             if self.seed:
                 if self.isZip:
                     clean_target(f"{self.dir}/{name}")

@@ -132,10 +132,21 @@ def _clone(message, bot):
             LOGGER.info(f'Cloning Done: {name}')
         if config_dict['BOT_PM'] and message.chat.type != 'private':	
             try:	
-                bot.sendMessage(message.from_user.id, text=result + cc, reply_markup=button,	
+                bot.sendMessage(message.from_user.id, 
+                                text=result + cc, 
+                                reply_markup=button, 
                                 parse_mode='HTML')
             except Exception as e:	
                 LOGGER.warning(e)	
+                pass
+        if MIRROR_LOG := config_dict['MIRROR_LOG']:
+            try:
+                bot.sendMessage(chat_id=MIRROR_LOG, 
+                                text=result + cc, 
+                                reply_markup=button, 
+                                parse_mode='HTML')	
+            except Exception as e:	
+                LOGGER.warning(e)
                 pass
     else:
         sendMessage("Send link along with command or by replying to the link by command.", bot, message)

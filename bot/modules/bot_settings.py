@@ -257,6 +257,12 @@ def load_config():
     BOT_PM = environ.get('BOT_PM', '')	
     BOT_PM = BOT_PM.lower() == 'true'	    
 
+    MIRROR_LOG = environ.get('MIRROR_LOG', '')
+    if len(MIRROR_LOG) != 0 and not MIRROR_LOG.startswith('-100') or len(MIRROR_LOG) == 0:
+        MIRROR_LOG = ''
+    else:
+        MIRROR_LOG = int(MIRROR_LOG)
+
     DRIVES_IDS.clear()
     DRIVES_NAMES.clear()
     INDEX_URLS.clear()
@@ -335,7 +341,8 @@ def load_config():
                         'LEECH_LIMIT': LEECH_LIMIT,
                         'MEGA_LIMIT': MEGA_LIMIT,
                         'CRYPT': CRYPT,
-                        'BOT_PM': BOT_PM})
+                        'BOT_PM': BOT_PM,
+                        'MIRROR_LOG': MIRROR_LOG})
 
     if DATABASE_URL:
         DbManger().update_config(config_dict)
