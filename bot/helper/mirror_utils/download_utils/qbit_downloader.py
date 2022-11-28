@@ -179,34 +179,36 @@ def __check_limit(client, tor):
     STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
     LEECH_LIMIT = config_dict['LEECH_LIMIT']
     download = getDownloadByGid(tor.hash[:12])
-    try:
-        listener = download.listener()
-        size = tor.size
-        arch = any([listener.isZip, listener.extract])
-        if STORAGE_THRESHOLD:
-            acpt = check_storage_threshold(size, arch)
-            if not acpt:
-                msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
-                msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
-                Thread(target=__onDownloadError, args=(msg, client, tor)).start()
-                return
-        limit = None
-        if ZIP_UNZIP_LIMIT and arch:
-            msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
-            limit = ZIP_UNZIP_LIMIT
-        if LEECH_LIMIT and listener.isLeech:
-            msg = f'Leech limit is {LEECH_LIMIT}GB'
-            limit = LEECH_LIMIT
-        elif TORRENT_LIMIT:
-            msg = f'Torrent limit is {TORRENT_LIMIT}GB'
-            limit = TORRENT_LIMIT
-        if limit is not None:
-            LOGGER.info('Checking File/Folder Size...')
-            if size > limit * 1024**3:
-                fmsg = f"{msg}.\nYour File/Folder size is {get_readable_file_size(size)}"
-                Thread(target=__onDownloadError, args=(fmsg, client, tor)).start()
-    except:
-        pass
+    user_id = listener.message.from_user.id
+    if user_id != config_dict['OWNER_ID']:
+        try:
+            listener = download.listener()
+            size = tor.size
+            arch = any([listener.isZip, listener.extract])
+            if STORAGE_THRESHOLD:
+                acpt = check_storage_threshold(size, arch)
+                if not acpt:
+                    msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
+                    msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
+                    Thread(target=__onDownloadError, args=(msg, client, tor)).start()
+                    return
+            limit = None
+            if ZIP_UNZIP_LIMIT and arch:
+                msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
+                limit = ZIP_UNZIP_LIMIT
+            if LEECH_LIMIT and listener.isLeech:
+                msg = f'Leech limit is {LEECH_LIMIT}GB'
+                limit = LEECH_LIMIT
+            elif TORRENT_LIMIT:
+                msg = f'Torrent limit is {TORRENT_LIMIT}GB'
+                limit = TORRENT_LIMIT
+            if limit is not None:
+                LOGGER.info('Checking File/Folder Size...')
+                if size > limit * 1024**3:
+                    fmsg = f"{msg}.\nYour File/Folder size is {get_readable_file_size(size)}"
+                    Thread(target=__onDownloadError, args=(fmsg, client, tor)).start()
+        except:
+            pass
     
 @new_thread
 def __onDownloadComplete(client, tor):
@@ -259,12 +261,8 @@ def __qb_listener():
                         STOP_DUP_CHECK.add(tor_info.hash)
                         __stop_duplicate(client, tor_info)
                     if CHECK_FILE_SIZE and tor_info.hash not in LIMIT_CHECK:
-                        download = getDownloadByGid(tor_info.hash[:12])
-                        listener = download.listener()
-                        user_id = listener.message.from_user.id
-                        if user_id != config_dict['OWNER_ID']:
-                            LIMIT_CHECK.add(tor_info.hash)
-                            __check_limit(client, tor_info)
+                        LIMIT_CHECK.add(tor_info.hash)
+                        __check_limit(client, tor_info)
                 elif tor_info.state == "stalledDL":
                     TORRENT_TIMEOUT = config_dict['TORRENT_TIMEOUT']
                     if tor_info.hash not in RECHECKED and 0.99989999999999999 < tor_info.progress < 1:
