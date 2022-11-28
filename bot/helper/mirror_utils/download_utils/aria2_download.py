@@ -82,10 +82,10 @@ def __onDownloadStarted(api, gid):
                     msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
                     listener.onDownloadError(msg)
                     return api.remove([download], force=True, files=True)
-            if ZIP_UNZIP_LIMIT and listener.extract or listener.isZip:
+            if ZIP_UNZIP_LIMIT and arch:
                 msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
                 limit = ZIP_UNZIP_LIMIT
-            elif LEECH_LIMIT and listener.isLeech:
+            if LEECH_LIMIT and arch:
                 msg = f'Leech limit is {LEECH_LIMIT}GB'
                 limit = LEECH_LIMIT
             elif TORRENT_LIMIT:

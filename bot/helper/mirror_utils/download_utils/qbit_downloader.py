@@ -182,7 +182,7 @@ def __check_limit(client, tor):
     try:
         listener = download.listener()
         size = tor.size
-        arch = any([listener.isZip, listener.extract, listener.isLeech])
+        arch = any([listener.isZip, listener.extract])
         if STORAGE_THRESHOLD:
             acpt = check_storage_threshold(size, arch)
             if not acpt:
@@ -191,10 +191,10 @@ def __check_limit(client, tor):
                 Thread(target=__onDownloadError, args=(msg, client, tor)).start()
                 return
         limit = None
-        if ZIP_UNZIP_LIMIT and listener.extract or listener.isZip:
+        if ZIP_UNZIP_LIMIT and arch:
             msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
             limit = ZIP_UNZIP_LIMIT
-        elif LEECH_LIMIT and listener.isLeech:
+        if LEECH_LIMIT and listener.isLeech:
             msg = f'Leech limit is {LEECH_LIMIT}GB'
             limit = LEECH_LIMIT
         elif TORRENT_LIMIT:

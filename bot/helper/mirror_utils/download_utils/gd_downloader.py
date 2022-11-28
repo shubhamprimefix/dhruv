@@ -34,7 +34,7 @@ def add_gd_download(link, path, listener, newname):
         LEECH_LIMIT = config_dict['LEECH_LIMIT']
         TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
         STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
-        arch = any([listener.extract, listener.isZip, listener.isLeech])
+        arch = any([listener.extract, listener.isZip])
         limit = None
         user_id = listener.message.from_user.id
         if user_id != config_dict['OWNER_ID']:
@@ -44,10 +44,10 @@ def add_gd_download(link, path, listener, newname):
                     msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
                     msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
                     return sendMessage(msg, listener.bot, listener.message)
-            if ZIP_UNZIP_LIMIT and listener.extract or listener.isZip:
+            if ZIP_UNZIP_LIMIT and arch:
                 msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
                 limit = ZIP_UNZIP_LIMIT
-            elif LEECH_LIMIT and listener.isLeech:
+            if LEECH_LIMIT and listener.isLeech:
                 msg = f'Leech limit is {LEECH_LIMIT}GB'
                 limit = LEECH_LIMIT
             elif TORRENT_LIMIT:

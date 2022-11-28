@@ -107,7 +107,7 @@ class TelegramDownloadHelper:
                     if STORAGE_THRESHOLD := config_dict['STORAGE_THRESHOLD']:
                         user_id = message.from_user.id
                         if user_id != config_dict['OWNER_ID']:
-                            arch = any([self.__listener.isZip, self.__listener.extract, self.__listener.isLeech])
+                            arch = any([self.__listener.isZip, self.__listener.extract])
                             acpt = check_storage_threshold(size, arch)
                             if not acpt:
                                 msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
