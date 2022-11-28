@@ -194,7 +194,7 @@ def __check_limit(client, tor):
         if ZIP_UNZIP_LIMIT and listener.extract or listener.isZip:
             msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
             limit = ZIP_UNZIP_LIMIT
-        if LEECH_LIMIT and listener.isLeech:
+        elif LEECH_LIMIT and listener.isLeech:
             msg = f'Leech limit is {LEECH_LIMIT}GB'
             limit = LEECH_LIMIT
         elif TORRENT_LIMIT:
