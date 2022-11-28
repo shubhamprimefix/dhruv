@@ -9,7 +9,7 @@ from bot.helper.telegram_helper.message_utils import sendMessage, deleteMessage,
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.mirror_utils.status_utils.clone_status import CloneStatus
-from bot import dispatcher, LOGGER, download_dict, download_dict_lock, Interval, config_dict
+from bot import dispatcher, LOGGER, download_dict, download_dict_lock, Interval, config_dict, CHECK_FILE_SIZE
 from bot.helper.ext_utils.bot_utils import is_gdrive_link, new_thread, get_user_task, get_readable_file_size, is_gdtot_link
 from bot.helper.mirror_utils.download_utils.direct_link_generator import gdtot
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
@@ -85,12 +85,14 @@ def _clone(message, bot):
             if smsg:
                 msg = "File/Folder is already available in Drive.\nHere are the search results:"
                 return sendMarkup(msg, bot, message, button)
-        CLONE_LIMIT = config_dict['CLONE_LIMIT']
-        if CLONE_LIMIT:
-            LOGGER.info('Checking File/Folder Size...')
-            if size > CLONE_LIMIT * 1024**3:
-                msg = f'Failed, Clone limit is {CLONE_LIMIT}GB.\nYour File/Folder size is {get_readable_file_size(size)}.'
-                return sendMessage(msg, bot, message)
+        if CHECK_FILE_SIZE:
+            if CLONE_LIMIT := config_dict['CLONE_LIMIT']:
+                user_id = message.from_user.id
+                if user_id != config_dict['OWNER_ID']:
+                    LOGGER.info('Checking File/Folder Size...')
+                    if size > CLONE_LIMIT * 1024**3:
+                        msg = f'Failed, Clone limit is {CLONE_LIMIT}GB.\nYour File/Folder size is {get_readable_file_size(size)}.'
+                        return sendMessage(msg, bot, message)
         if multi > 1:
             sleep(4)
             nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})

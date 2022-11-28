@@ -2,7 +2,7 @@ from logging import getLogger, WARNING
 from time import time
 from threading import RLock, Lock
 
-from bot import LOGGER, download_dict, download_dict_lock, app, config_dict
+from bot import LOGGER, download_dict, download_dict_lock, app, config_dict, CHECK_FILE_SIZE
 from ..status_utils.telegram_download_status import TelegramDownloadStatus
 from bot.helper.telegram_helper.message_utils import sendStatusMessage, sendMarkup, sendMessage
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
@@ -103,14 +103,16 @@ class TelegramDownloadHelper:
                     if smsg:
                         msg = "File/Folder is already available in Drive.\nHere are the search results:"
                         return sendMarkup(msg, self.__listener.bot, self.__listener.message, button)
-                STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
-                if STORAGE_THRESHOLD:
-                    arch = any([self.__listener.isZip, self.__listener.extract])
-                    acpt = check_storage_threshold(size, arch)
-                    if not acpt:
-                        msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
-                        msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
-                        return sendMessage(msg, self.__listener.bot, self.__listener.message)
+                if CHECK_FILE_SIZE:
+                    if STORAGE_THRESHOLD := config_dict['STORAGE_THRESHOLD']:
+                        user_id = message.from_user.id
+                        if user_id != config_dict['OWNER_ID']:
+                            arch = any([self.__listener.isZip, self.__listener.extract, self.__listener.isLeech])
+                            acpt = check_storage_threshold(size, arch)
+                            if not acpt:
+                                msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
+                                msg += f'\nYour File/Folder size is {get_readable_file_size(size)}'
+                                return sendMessage(msg, self.__listener.bot, self.__listener.message)
                 self.__onDownloadStart(name, size, media.file_unique_id)
                 LOGGER.info(f'Downloading Telegram file with id: {media.file_unique_id}')
                 self.__download(_dmsg, path)

@@ -6,7 +6,7 @@ from re import search as re_search
 from os import remove
 from threading import Lock, Thread
 
-from bot import download_dict, download_dict_lock, get_client, LOGGER, QbInterval, config_dict
+from bot import download_dict, download_dict_lock, get_client, LOGGER, QbInterval, config_dict, CHECK_FILE_SIZE
 from bot.helper.mirror_utils.status_utils.qbit_download_status import QbDownloadStatus
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, deleteMessage, sendStatusMessage, update_all_messages
@@ -19,7 +19,7 @@ STOP_DUP_CHECK = set()
 RECHECKED = set()
 UPLOADED = set()
 SEEDING = set()
-CHECK_LIMIT = set()
+LIMIT_CHECK = set()
 
 def __get_hash_magnet(mgt: str):
     hash_ = re_search(r'(?<=xt=urn:btih:)[a-zA-Z0-9]+', mgt).group(0)
@@ -122,8 +122,8 @@ def __remove_torrent(client, hash_):
             UPLOADED.remove(hash_)
         if hash_ in SEEDING:
             SEEDING.remove(hash_)
-        if hash_ in CHECK_LIMIT:
-            CHECK_LIMIT.remove(hash_)
+        if hash_ in LIMIT_CHECK:
+            LIMIT_CHECK.remove(hash_)
 
 def __onDownloadError(err, client, tor):
     LOGGER.info(f"Cancelling Download: {tor.name}")
@@ -174,16 +174,15 @@ def __stop_duplicate(client, tor):
 
 @new_thread
 def __check_limit(client, tor):
+    ZIP_UNZIP_LIMIT = config_dict['ZIP_UNZIP_LIMIT']
+    TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
+    STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
+    LEECH_LIMIT = config_dict['LEECH_LIMIT']
     download = getDownloadByGid(tor.hash[:12])
     try:
         listener = download.listener()
         size = tor.size
-        arch = any([listener.isZip, listener.extract])
-        ZIP_UNZIP_LIMIT = config_dict['ZIP_UNZIP_LIMIT']
-        TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
-        STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
-        TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
-        LEECH_LIMIT = config_dict['LEECH_LIMIT']
+        arch = any([listener.isZip, listener.extract, listener.isLeech])
         if STORAGE_THRESHOLD:
             acpt = check_storage_threshold(size, arch)
             if not acpt:
@@ -192,7 +191,7 @@ def __check_limit(client, tor):
                 Thread(target=__onDownloadError, args=(msg, client, tor)).start()
                 return
         limit = None
-        if ZIP_UNZIP_LIMIT and arch:
+        if ZIP_UNZIP_LIMIT and listener.extract or listener.isZip:
             msg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
             limit = ZIP_UNZIP_LIMIT
         if LEECH_LIMIT and listener.isLeech:
@@ -259,13 +258,13 @@ def __qb_listener():
                     if config_dict['STOP_DUPLICATE'] and tor_info.hash not in STOP_DUP_CHECK:
                         STOP_DUP_CHECK.add(tor_info.hash)
                         __stop_duplicate(client, tor_info)
-                    ZIP_UNZIP_LIMIT = config_dict['ZIP_UNZIP_LIMIT']
-                    TORRENT_LIMIT = config_dict['TORRENT_LIMIT']
-                    STORAGE_THRESHOLD = config_dict['STORAGE_THRESHOLD']
-                    LEECH_LIMIT = config_dict['LEECH_LIMIT']
-                    if any([ZIP_UNZIP_LIMIT, TORRENT_LIMIT, STORAGE_THRESHOLD, LEECH_LIMIT])and tor_info.hash not in CHECK_LIMIT:
-                        CHECK_LIMIT.add(tor_info.hash)
-                        __check_limit(client, tor_info)
+                    if CHECK_FILE_SIZE and tor_info.hash not in LIMIT_CHECK:
+                        download = getDownloadByGid(tor_info.hash[:12])
+                        listener = download.listener()
+                        user_id = listener.message.from_user.id
+                        if user_id != config_dict['OWNER_ID']:
+                            LIMIT_CHECK.add(tor_info.hash)
+                            __check_limit(client, tor_info)
                 elif tor_info.state == "stalledDL":
                     TORRENT_TIMEOUT = config_dict['TORRENT_TIMEOUT']
                     if tor_info.hash not in RECHECKED and 0.99989999999999999 < tor_info.progress < 1:

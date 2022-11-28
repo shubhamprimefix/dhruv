@@ -313,6 +313,11 @@ LEECH_LIMIT = '' if len(LEECH_LIMIT) == 0 else float(LEECH_LIMIT)
 MEGA_LIMIT = environ.get('MEGA_LIMIT', '')
 MEGA_LIMIT = '' if len(MEGA_LIMIT) == 0 else float(MEGA_LIMIT)    
 
+if any([ZIP_UNZIP_LIMIT, TORRENT_LIMIT, STORAGE_THRESHOLD, LEECH_LIMIT, MEGA_LIMIT, CLONE_LIMIT]):
+    CHECK_FILE_SIZE = True
+else:
+    CHECK_FILE_SIZE = False
+
 CRYPT = environ.get('CRYPT', '')
 if len(CRYPT) == 0:
     CRYPT = ''
