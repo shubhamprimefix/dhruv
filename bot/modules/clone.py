@@ -71,7 +71,7 @@ def _clone(message, bot):
                 link = gdtot(link)
             LOGGER.info(f"Processing GdToT: {link}")
             deleteMessage(bot, msg)
-        except DirectDownloadLinkException as e:
+        except Exception as e:
             deleteMessage(bot, msg)
             return sendMessage(str(e), bot, message)
     if is_gdrive_link(link):
