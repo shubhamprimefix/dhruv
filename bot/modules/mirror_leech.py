@@ -153,7 +153,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 link = direct_link_generator(link)
             LOGGER.info(f"Processing GdToT: {link}")
             deleteMessage(bot, msg)
-        except DirectDownloadLinkException as e:
+        except Exception as e:
             deleteMessage(bot, msg)
             return sendMessage(str(e), bot, message)
 

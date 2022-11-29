@@ -113,6 +113,16 @@ class TgUploader:
                                                                   supports_streaming=True,
                                                                   disable_notification=True,
                                                                   progress=self.__upload_progress)
+                    if config_dict['DUMP_CHAT'] and config_dict['BOT_PM']:
+                        try:
+                            if IS_USER_SESSION:
+                                self.__listener.bot.copy_message(chat_id=self.__listener.message.from_user.id,
+                                                                from_chat_id=self.__sent_msg.chat.id,
+                                                                message_id=self.__sent_msg.id)
+                            else:
+                                self.__sent_msg.copy(chat_id=self.__listener.message.from_user.id)
+                        except Exception as err:
+                            LOGGER.error(f"Failed To Send files in PM:\n{err}")
                 elif is_audio:
                     duration , artist, title = get_media_info(up_path)
                     self.__sent_msg = self.__sent_msg.reply_audio(audio=up_path,
@@ -124,12 +134,32 @@ class TgUploader:
                                                                   thumb=thumb,
                                                                   disable_notification=True,
                                                                   progress=self.__upload_progress)
+                    if config_dict['DUMP_CHAT'] and config_dict['BOT_PM']:
+                        try:
+                            if IS_USER_SESSION:
+                                self.__listener.bot.copy_message(chat_id=self.__listener.message.from_user.id,
+                                                                from_chat_id=self.__sent_msg.chat.id,
+                                                                message_id=self.__sent_msg.id)
+                            else:
+                                self.__sent_msg.copy(chat_id=self.__listener.message.from_user.id)
+                        except Exception as err:
+                            LOGGER.error(f"Failed To Send files in PM:\n{err}")
                 elif file_.upper().endswith(IMAGE_SUFFIXES):
                     self.__sent_msg = self.__sent_msg.reply_photo(photo=up_path,
                                                                   quote=True,
                                                                   caption=cap_mono,
                                                                   disable_notification=True,
                                                                   progress=self.__upload_progress)
+                    if config_dict['DUMP_CHAT'] and config_dict['BOT_PM']:
+                        try:
+                            if IS_USER_SESSION:
+                                self.__listener.bot.copy_message(chat_id=self.__listener.message.from_user.id,
+                                                                from_chat_id=self.__sent_msg.chat.id,
+                                                                message_id=self.__sent_msg.id)
+                            else:
+                                self.__sent_msg.copy(chat_id=self.__listener.message.from_user.id)
+                        except Exception as err:
+                            LOGGER.error(f"Failed To Send files in PM:\n{err}")
                 else:
                     notMedia = True
             if self.__as_doc or notMedia:
@@ -145,13 +175,16 @@ class TgUploader:
                                                                  caption=cap_mono,
                                                                  disable_notification=True,
                                                                  progress=self.__upload_progress)
-            if config_dict['DUMP_CHAT'] and config_dict['BOT_PM']:
-                if IS_USER_SESSION:
-                    self.__listener.bot.copy_message(chat_id=self.__listener.message.from_user.id,
-                                                     from_chat_id=self.__sent_msg.chat.id,
-                                                     message_id=self.__sent_msg.id)
-                else:
-                    self.__sent_msg.copy(chat_id=self.__listener.message.from_user.id)
+                if config_dict['DUMP_CHAT'] and config_dict['BOT_PM']:
+                    try:
+                        if IS_USER_SESSION:
+                            self.__listener.bot.copy_message(chat_id=self.__listener.message.from_user.id,
+                                                            from_chat_id=self.__sent_msg.chat.id,
+                                                            message_id=self.__sent_msg.id)
+                        else:
+                            self.__sent_msg.copy(chat_id=self.__listener.message.from_user.id)
+                    except Exception as err:
+                        LOGGER.error(f"Failed To Send files in PM:\n{err}")
         except FloodWait as f:
             LOGGER.warning(str(f))
             sleep(f.value)
