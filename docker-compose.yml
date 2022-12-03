@@ -1,7 +1,7 @@
 services:
   app:
-    container_name: mltb-modified
+    container_name: dhruvmirror-mltb
     build: .
     restart: on-failure
     ports:
-      - "80:80"
+      - "8001:80"
