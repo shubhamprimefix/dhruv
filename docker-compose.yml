@@ -4,4 +4,4 @@ services:
     build: .
     restart: on-failure
     ports:
-      - "8001:80"
+      - "80:80"
